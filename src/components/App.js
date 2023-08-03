@@ -2,6 +2,7 @@
 import ReviewList from "./ReviewList";
 import { useEffect, useState } from "react";
 import { getReviews } from '../api'
+import ReviewForm from "./ReviewForm";
 
 // 페이지네이션 최대 개수
 const LIMIT = 6;
@@ -77,6 +78,7 @@ function App() {
             <button onClick={handelBesttClick}>베스트순</button>
         </div>
         <div>
+            <ReviewForm />
             <ReviewList items={sortedItems} onDelete={handelDelte} />
             {hasNext && <button disabled={isLoading} onClick={handleLoadMore}>더보기</button>}
         </div>
