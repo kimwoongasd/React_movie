@@ -1,14 +1,13 @@
 // 최상위 컴포넌트
 import ReviewList from "./ReviewList";
 import { useEffect, useState } from "react";
-import { getReviews } from '../api'
+import { createReview, deleteReview, getReviews, updateReview } from '../api';
 import ReviewForm from "./ReviewForm";
 
 // 페이지네이션 최대 개수
 const LIMIT = 6;
 
 function App() {
-    // 삭제 State
     const [items, setItems] = useState([]);
 
     // 정렬 State
@@ -30,10 +29,12 @@ function App() {
     const handelBesttClick = () => setOrder('rating');
 
     // 삭제 핸들러
-    const handelDelte = (id) => {
+    const handelDelte = async (id) => {
+        const result = await deleteReview(id);
+        if (!result) return;
+
         // 삭제 id를 제외하고 다시 생성
-        const nextItems = items.filter((item) => item.id !== id);
-        setItems(nextItems);
+        setItems((prevItems) => prevItems.filter((item) => item.id !== id));
     }
 
     // 네트워크에서 데이터를 받아와 items State 변경
@@ -65,6 +66,24 @@ function App() {
         await handleLoad({ order, offset, limit: LIMIT });
     };
 
+    // 리퀘스트 이후 비동기로 실행되는 함수
+    // 글 생성 함수
+    const handleCreateSuccess = (review) => {
+        setItems((prevItems) => [review, ...prevItems]);
+    };
+
+    // 수정완료 함수
+    const handleUpdateSuccess = (review) => {
+        setItems((prevItems) => {
+            const splitIdx = prevItems.findIndex((item) => item.id === review.id);
+            return [
+                ...prevItems.slice(0, splitIdx),
+                review,
+                ...prevItems.slice(splitIdx + 1),
+            ];
+        });
+    }
+
     // useEffect 함수를 사용해서 무한루프를 벗어난다
     // 정렬값이 바뀔 때 마다 서버에서 정렬된 데이터를 얻는다 
     useEffect(() => {
@@ -78,8 +97,11 @@ function App() {
             <button onClick={handelBesttClick}>베스트순</button>
         </div>
         <div>
-            <ReviewForm />
-            <ReviewList items={sortedItems} onDelete={handelDelte} />
+            <ReviewForm onSubmit={createReview} onSubmitSuccess={handleCreateSuccess}/>
+            <ReviewList items={sortedItems} 
+            onDelete={handelDelte} 
+            onUpdate={updateReview}
+            onUpdateSuccess={handleUpdateSuccess} />
             {hasNext && <button disabled={isLoading} onClick={handleLoadMore}>더보기</button>}
         </div>
         {loadingError?.message && <span>{loadingError.message}</span>}

@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 // 이미지 파일 선택 창
-function FileInput({ name, value, onChange }) {
+function FileInput({ name, value, initialPreview, onChange }) {
     // 파일 미리보기 State
-    const [preview, setPreview] = useState();
+    const [preview, setPreview] = useState(initialPreview);
 
     // Ref 객체 생성 
     const inputRef = useRef();
@@ -21,21 +21,19 @@ function FileInput({ name, value, onChange }) {
 
         inputNode.value = '';
         onChange(name, null);
-    }
+    };
 
     // 파일을 선택할 떄마다 미리 보기 주소 변경
     useEffect(() => {
         if (!value) return;
-
         const nextPreview = URL.createObjectURL(value);
         setPreview(nextPreview);
-        
-        // 다른 파일 선택하거나 해제했을 때 메모리와 사이드 이펙트 해제
+    
         return () => {
-            setPreview();
+            setPreview(initialPreview);
             URL.revokeObjectURL(nextPreview);
-        }
-    }, [value]);
+        };
+    }, [value, initialPreview]);
   
     return (
         <div>
